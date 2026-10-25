@@ -41,6 +41,10 @@
   .info .s{font-size:14px;color:#333}
   .card hr{border:0;border-top:1px solid #ccc;margin:14px 0}
   #msg{text-align:center;font-size:14px;color:#222;min-height:22px;word-break:break-word}
+  #detail{text-align:center;font-size:12px;color:#777;margin-top:6px;word-break:break-word;direction:ltr}
+  #list{list-style:none;margin-top:12px;border-top:1px solid #ccc;padding-top:10px;max-height:170px;overflow:auto;direction:ltr;text-align:left;font-size:13px;color:#222}
+  #list li{padding:2px 0;word-break:break-all}
+  #list li.more{color:#777}
 
   .dl{display:flex;align-items:center;justify-content:center;gap:10px}
   footer{width:100%;max-width:680px;text-align:center;font-size:13px;color:#777;padding-top:12px}
@@ -53,7 +57,7 @@
 </head>
 <body>
 
-<header><h1>معاذ K20SHOP x</h1></header>
+<header><h1>معاذ. K20SHOP x</h1></header>
 
 <main>
   <div class="intro">
@@ -79,6 +83,8 @@
     </div>
     <hr>
     <div id="msg">اختر ملفًا للبدء.</div>
+    <div id="detail" hidden></div>
+    <ul id="list" hidden></ul>
   </div>
 
   <button type="button" class="big dl" id="dlBtn" disabled>
@@ -92,7 +98,7 @@
   <div>يتم فك الضغط ومعالجة الملفات محليًا في متصفحك</div>
 </footer>
 
-<!-- JSZip 3.10.1 (إنشاء ملف ZIP الناتج) -->
+<!-- JSZip 3.10.1 (قراءة ZIP وإنشاء ملف ZIP الناتج) -->
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
   if (!window.JSZip) {
@@ -100,8 +106,74 @@
   }
 </script>
 
+<!-- المنطق الأساسي (يعمل بدون واجهة، وتم اختباره) -->
+<script id="core">
+var Core = (function () {
+  /* تنظيف المسار: يمنع ../ والمسارات المطلقة. يرجع null إذا كان المسار خطرًا */
+  function safePath(p) {
+    var parts = String(p).replace(/\\/g, "/").split("/").filter(function (x) { return x && x !== "."; });
+    for (var i = 0; i < parts.length; i++) if (parts[i] === "..") return null;
+    return parts.join("/");
+  }
+
+  /* كشف نوع الأرشيف من أول بايتات الملف (أدق من الامتداد) */
+  function detect(u8, fallbackExt) {
+    var b = u8;
+    if (b.length >= 4 && b[0] === 0x50 && b[1] === 0x4B && (b[2] === 3 || b[2] === 5 || b[2] === 7)) return "zip";
+    if (b.length >= 6 && b[0] === 0x52 && b[1] === 0x61 && b[2] === 0x72 && b[3] === 0x21 && b[4] === 0x1A && b[5] === 0x07) return "rar";
+    if (b.length >= 6 && b[0] === 0x37 && b[1] === 0x7A && b[2] === 0xBC && b[3] === 0xAF && b[4] === 0x27 && b[5] === 0x1C) return "7z";
+    return fallbackExt || "";
+  }
+
+  /* أسماء ZIP: UTF-8 أولًا، وإن فشل فـ windows-1256 (عربي قديم) */
+  function decodeName(bytes) {
+    try { return new TextDecoder("utf-8", { fatal: true }).decode(bytes); }
+    catch (e) {
+      try { return new TextDecoder("windows-1256").decode(bytes); }
+      catch (e2) { return new TextDecoder("utf-8").decode(bytes); }
+    }
+  }
+
+  /* يقرأ ZIP فعليًا ويُدخل كل ملف مستخرج في كائن ZIP جديد (out) */
+  async function zipToZip(buf, JSZipLib) {
+    var src = await JSZipLib.loadAsync(buf, { decodeFileName: decodeName });
+    var out = new JSZipLib();
+    var names = [], skipped = 0, entries = [];
+    src.forEach(function (rel, e) { entries.push([rel, e]); });
+    for (var i = 0; i < entries.length; i++) {
+      var rel = entries[i][0], e = entries[i][1];
+      var sp = safePath(rel);
+      if (sp === null) { skipped++; continue; }
+      if (sp === "") continue;
+      if (e.dir) { out.folder(sp); continue; }
+      var data = await e.async("uint8array");
+      out.file(sp, data, { binary: true, date: e.date });
+      names.push(sp);
+    }
+    return { out: out, names: names, skipped: skipped };
+  }
+
+  /* ينشئ ZIP النهائي ثم يعيد فتحه للتحقق من أن محتواه هو الملفات المستخرجة */
+  async function finalize(out, JSZipLib, expectedNames, type, onProgress) {
+    var result = await out.generateAsync(
+      { type: type || "blob", compression: "DEFLATE", compressionOptions: { level: 1 }, streamFiles: true },
+      function (m) { if (onProgress) onProgress(m.percent); }
+    );
+    var ab = result.arrayBuffer ? await result.arrayBuffer() : result;
+    var chk = await JSZipLib.loadAsync(ab);
+    var got = [];
+    chk.forEach(function (rel, e) { if (!e.dir) got.push(rel); });
+    if (got.length !== expectedNames.length) throw new Error("verify: count mismatch " + got.length + "/" + expectedNames.length);
+    expectedNames.forEach(function (n) { if (got.indexOf(n) < 0) throw new Error("verify: missing " + n); });
+    return result;
+  }
+
+  return { safePath: safePath, detect: detect, decodeName: decodeName, zipToZip: zipToZip, finalize: finalize };
+})();
+</script>
+
 <script type="module">
-/* 7-Zip WASM 1.2.0 (يدعم ZIP و RAR و 7Z) — يعمل بالكامل داخل المتصفح */
+/* 7-Zip WASM 1.2.0 — يُستخدم لـ RAR و 7Z فقط (ZIP يُفك بـ JSZip مباشرة) */
 const SZ_BASE = "https://cdn.jsdelivr.net/npm/7z-wasm@1.2.0/";
 const MAX_BYTES = 400 * 1024 * 1024; // حد متحفظ بسبب ذاكرة Safari
 
@@ -109,11 +181,14 @@ const $ = (id) => document.getElementById(id);
 const fileInput = $("fileInput"), pickBtn = $("pickBtn"), extractBtn = $("extractBtn"), dlBtn = $("dlBtn");
 const pickName = $("pickName"), stateText = $("stateText"), stateIcon = $("stateIcon");
 const info = $("info"), infoName = $("infoName"), infoSize = $("infoSize"), msg = $("msg");
+const detail = $("detail"), list = $("list");
 
 const ICON_OK = '<svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#000"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const ICON_ERR = '<svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#000"/><path d="M8 8l8 8M16 8l-8 8" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>';
 
-let file = null, resultBlob = null, resultUrl = null, busy = false;
+let file = null, resultUrl = null, resultName = "files-extracted.zip", busy = false;
+
+class UserError extends Error {}
 
 function fmtSize(b){
   if (b < 1024) return b + " B";
@@ -121,17 +196,24 @@ function fmtSize(b){
   if (b < 1073741824) return (b/1048576).toFixed(1) + " MB";
   return (b/1073741824).toFixed(2) + " GB";
 }
-function setState(title, icon, message){
+function ext(name){ const m = /\.([^.]+)$/.exec(name); return m ? m[1].toLowerCase() : ""; }
+function setState(title, icon, message, det){
   stateText.textContent = title;
   stateIcon.innerHTML = icon || "";
   msg.textContent = message;
+  detail.hidden = !det; detail.textContent = det || "";
+}
+function showList(names){
+  list.innerHTML = "";
+  if (!names || !names.length) { list.hidden = true; return; }
+  names.slice(0, 8).forEach(n => { const li = document.createElement("li"); li.textContent = n; list.appendChild(li); });
+  if (names.length > 8) { const li = document.createElement("li"); li.className = "more"; li.textContent = "… +" + (names.length - 8); list.appendChild(li); }
+  list.hidden = false;
 }
 function resetResult(){
-  resultBlob = null;
   if (resultUrl) { URL.revokeObjectURL(resultUrl); resultUrl = null; }
-  dlBtn.disabled = true;
+  dlBtn.disabled = true; showList(null);
 }
-function ext(name){ const m = /\.([^.]+)$/.exec(name); return m ? m[1].toLowerCase() : ""; }
 
 pickBtn.addEventListener("click", () => { if (!busy) fileInput.click(); });
 
@@ -154,13 +236,6 @@ fileInput.addEventListener("change", () => {
   setState("تم اختيار الملف بنجاح", ICON_OK, "اضغط على زر \"فك الضغط\" لبدء العملية.");
 });
 
-/* تنظيف المسار: يمنع ../ والمسارات المطلقة */
-function safePath(p){
-  const parts = p.replace(/\\/g, "/").split("/").filter(s => s && s !== ".");
-  if (parts.some(s => s === "..")) return null;
-  return parts.join("/");
-}
-
 function walk(FS, dir, rel, files, dirs){
   for (const n of FS.readdir(dir)) {
     if (n === "." || n === "..") continue;
@@ -172,7 +247,53 @@ function walk(FS, dir, rel, files, dirs){
   }
 }
 
-class UserError extends Error {}
+/* RAR / 7Z عبر 7-Zip WASM: يستخرج إلى ذاكرة WASM ثم يُنقل إلى ZIP جديد */
+async function wasmToZip(buf){
+  let SevenZip;
+  try { SevenZip = (await import(SZ_BASE + "7zz.es6.js")).default; }
+  catch (e) { throw new UserError("تعذر تحميل مكتبة فك RAR/7Z. تحقق من اتصال الإنترنت ثم أعد تحميل الصفحة. (ZIP يعمل بدونها)"); }
+
+  const logs = [];
+  const sz = await SevenZip({
+    locateFile: (f) => SZ_BASE + f,
+    print: (t) => logs.push(String(t)),
+    printErr: (t) => logs.push(String(t)),
+  });
+  const FS = sz.FS;
+  const inName = "input.bin";
+  const stream = FS.open(inName, "w+");
+  FS.write(stream, buf, 0, buf.length);
+  FS.close(stream);
+
+  FS.mkdir("/out");
+  let code = 0;
+  try {
+    const r = sz.callMain(["x", inName, "-o/out", "-y", "-aoa", "-pnopassword"]);
+    code = typeof r === "number" ? r : 0;
+  } catch (e) {
+    code = (e && typeof e.status === "number") ? e.status : 255;
+  }
+  try { FS.unlink(inName); } catch (_) {}
+
+  const all = logs.join("\n");
+  if (code >= 2) {
+    if (/wrong password|encrypted/i.test(all)) throw new UserError("الملف محمي بكلمة مرور، وهذا غير مدعوم حاليًا.");
+    throw new UserError("تعذر فك الضغط، تأكد من سلامة الملف.");
+  }
+
+  const files = [], dirs = [];
+  walk(FS, "/out", "", files, dirs);
+  const out = new JSZip(), names = []; let skipped = 0;
+  for (const d of dirs) { const sp = Core.safePath(d); if (sp) out.folder(sp); }
+  for (const [real, rel] of files) {
+    const sp = Core.safePath(rel);
+    if (!sp) { skipped++; continue; }
+    out.file(sp, FS.readFile(real), { binary: true });
+    names.push(sp);
+    try { FS.unlink(real); } catch (_) {}
+  }
+  return { out, names, skipped, warn: code === 1 };
+}
 
 extractBtn.addEventListener("click", async () => {
   if (!file || busy) return;
@@ -180,82 +301,46 @@ extractBtn.addEventListener("click", async () => {
   extractBtn.disabled = true; pickBtn.disabled = true;
   setState("جارٍ فك الضغط…", "", "جارٍ فك الضغط…");
   try {
-    if (!window.JSZip) throw new UserError("تعذر تحميل مكتبة إنشاء ZIP. تحقق من اتصال الإنترنت ثم أعد تحميل الصفحة.");
+    if (!window.JSZip) throw new UserError("تعذر تحميل مكتبة JSZip. تحقق من اتصال الإنترنت ثم أعد تحميل الصفحة.");
 
-    let SevenZip;
-    try {
-      SevenZip = (await import(SZ_BASE + "7zz.es6.js")).default;
-    } catch (e) {
-      throw new UserError("تعذر تحميل مكتبة فك الضغط. تحقق من اتصال الإنترنت ثم أعد تحميل الصفحة.");
-    }
-
-    const logs = [];
-    const sz = await SevenZip({
-      locateFile: (f) => SZ_BASE + f,
-      print: (t) => logs.push(String(t)),
-      printErr: (t) => logs.push(String(t)),
-    });
-    const FS = sz.FS;
-
-    // نسخ الأرشيف إلى ذاكرة WASM باسم آمن (لتجنب مشاكل الأسماء العربية في الإدخال)
-    const inName = "input." + ext(file.name);
     let buf = new Uint8Array(await file.arrayBuffer());
-    const stream = FS.open(inName, "w+");
-    FS.write(stream, buf, 0, buf.length);
-    FS.close(stream);
+    const kind = Core.detect(buf, ext(file.name));
+    let res;
+    if (kind === "zip") {
+      try { res = await Core.zipToZip(buf, JSZip); }
+      catch (e) {
+        if (e instanceof UserError) throw e;
+        throw new UserError("تعذر فك الضغط، تأكد من سلامة الملف.");
+      }
+    } else if (kind === "rar" || kind === "7z") {
+      res = await wasmToZip(buf);
+    } else {
+      throw new UserError("صيغة غير مدعومة. الصيغ المدعومة: ZIP و RAR و 7Z.");
+    }
     buf = null;
 
-    FS.mkdir("/out");
-    let code = 0;
-    try {
-      const r = sz.callMain(["x", inName, "-o/out", "-y", "-aoa", "-pnopassword"]);
-      code = typeof r === "number" ? r : 0;
-    } catch (e) {
-      code = (e && typeof e.status === "number") ? e.status : 255;
-    }
-    try { FS.unlink(inName); } catch (_) {}
+    if (!res.names.length) throw new UserError("لا توجد ملفات داخل الأرشيف، أو أن الملف غير صالح.");
 
-    const all = logs.join("\n");
-    if (code >= 2) {
-      if (/wrong password|encrypted|password/i.test(all)) throw new UserError("الملف محمي بكلمة مرور، وهذا غير مدعوم حاليًا.");
-      throw new UserError("تعذر فك الضغط، تأكد من سلامة الملف.");
-    }
+    msg.textContent = "جارٍ إنشاء ملف ZIP…";
+    const blob = await Core.finalize(res.out, JSZip, res.names, "blob", (p) => {
+      msg.textContent = "جارٍ إنشاء ملف ZIP… " + Math.round(p) + "%";
+    });
 
-    const files = [], dirs = [];
-    walk(FS, "/out", "", files, dirs);
-    if (!files.length && !dirs.length) throw new UserError("تعذر فك الضغط، تأكد من سلامة الملف أو أن الأرشيف غير فارغ.");
-
-    const zip = new JSZip();
-    let count = 0, skipped = 0;
-    for (const d of dirs) { const sp = safePath(d); if (sp) zip.folder(sp); }
-    for (const [real, rel] of files) {
-      const sp = safePath(rel);
-      if (!sp) { skipped++; continue; }
-      zip.file(sp, FS.readFile(real), { binary: true });
-      try { FS.unlink(real); } catch (_) {} // تحرير الذاكرة تدريجيًا
-      count++;
-    }
-    if (!count) throw new UserError("لا توجد ملفات صالحة للاستخراج.");
-
-    const blob = await zip.generateAsync(
-      { type: "blob", compression: "DEFLATE", compressionOptions: { level: 1 }, streamFiles: true },
-      (m) => { msg.textContent = "جارٍ إنشاء ملف ZIP… " + Math.round(m.percent) + "%"; }
-    );
-
-    resultBlob = blob;
     resultUrl = URL.createObjectURL(blob);
-    dlBtn.disabled = false; // التنزيل لا يبدأ إلا بضغطة المستخدم بعد اكتمال الإنشاء
-    let note = "اكتمل فك الضغط بنجاح. عدد الملفات: " + count + " — حجم ZIP: " + fmtSize(blob.size);
-    if (code === 1) note += " (مع تحذيرات من الأرشيف)";
-    if (skipped) note += " — تم تجاهل " + skipped + " مسار غير آمن";
+    resultName = file.name.replace(/\.[^.]+$/, "") + "-extracted.zip";
+    dlBtn.disabled = false; // لا يُفعَّل إلا بعد اكتمال إنشاء وفحص ZIP الناتج
+    let note = "اكتمل فك الضغط بنجاح. عدد الملفات: " + res.names.length + " — حجم ZIP الناتج: " + fmtSize(blob.size);
+    if (res.warn) note += " (مع تحذيرات من الأرشيف)";
+    if (res.skipped) note += " — تم تجاهل " + res.skipped + " مسار غير آمن";
     setState("اكتمل فك الضغط بنجاح", ICON_OK, note);
+    showList(res.names);
   } catch (e) {
     console.error(e);
     resetResult();
-    const text = e instanceof UserError ? e.message
-      : (e instanceof RangeError || /memory|alloc/i.test(String(e && e.message))) ? "الذاكرة غير كافية لمعالجة هذا الملف."
-      : "تعذر فك الضغط، تأكد من سلامة الملف.";
-    setState("تعذر فك الضغط", ICON_ERR, text);
+    if (e instanceof UserError) setState("تعذر فك الضغط", ICON_ERR, e.message);
+    else if (e instanceof RangeError || /memory|alloc/i.test(String(e && e.message)))
+      setState("تعذر فك الضغط", ICON_ERR, "الذاكرة غير كافية لمعالجة هذا الملف.", String(e && e.message));
+    else setState("تعذر فك الضغط", ICON_ERR, "تعذر فك الضغط، تأكد من سلامة الملف.", String(e && e.message));
   } finally {
     busy = false; pickBtn.disabled = false; extractBtn.disabled = !file;
   }
@@ -263,9 +348,8 @@ extractBtn.addEventListener("click", async () => {
 
 dlBtn.addEventListener("click", () => {
   if (!resultUrl) return;
-  const base = file ? file.name.replace(/\.[^.]+$/, "") : "files";
   const a = document.createElement("a");
-  a.href = resultUrl; a.download = base + "-extracted.zip";
+  a.href = resultUrl; a.download = resultName;
   document.body.appendChild(a); a.click(); a.remove();
 });
 </script>
