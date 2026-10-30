@@ -1,0 +1,69 @@
+<!doctype html><html lang="en" dir="ltr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BEAMNG CARS STUDIO</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head><body>
+<header><b class="logo">BEAMNG CARS STUDIO</b><nav id="nav"></nav></header>
+<main>
+<section id="p-home"><h2 data-i="home">Home</h2>
+<p data-i="intro">Import ZIP/RAR mods, edit files, textures and 3D models, then export a package. Everything runs locally in your browser; nothing is uploaded.</p>
+<label class="btn big"><span data-i="import">Import archive (ZIP/RAR)</span><input type="file" id="imp" accept=".zip,.rar" multiple hidden></label>
+<h3>Feature status</h3>
+<table>
+<tr><th>Implemented</th><td>ZIP import, file tree (add/delete/rename/move), code editor (highlight, lines, find/replace, auto-indent, JSON/JBeam error check), admin fonts, DAE 3D viewer + placeholder, PNG/JPG texture editor, ZIP package export</td></tr>
+<tr><th>Needs setup</th><td>RAR extraction: copy libarchive.js <code>dist/</code> into <code>vendor/libarchive/</code> (see README)</td></tr>
+<tr><th>Not supported</th><td>RAR creation (no browser library exists; export is ZIP), DDS decode/encode (DDS files are kept untouched), UV preview, textures on 3D models, Web Workers (runs on main thread with progress), saving between page reloads</td></tr>
+</table></section>
+
+<section id="p-explorer" hidden><h2 data-i="explorer">File Explorer</h2>
+<div class="bar">
+<label class="btn"><span data-i="import">Import archive</span><input type="file" id="imp2" accept=".zip,.rar" multiple hidden></label>
+<label class="btn"><span data-i="addf">Add files</span><input type="file" id="addf" multiple hidden></label>
+<button class="btn" id="newf" data-i="newf">New file</button>
+<button class="btn" id="open" data-i="open">Open</button>
+<button class="btn" id="ren" data-i="rename">Rename</button>
+<button class="btn" id="mov" data-i="move">Move</button>
+<button class="btn danger" id="del" data-i="del">Delete</button></div>
+<div id="sel" class="muted"></div><div id="tree" class="panel"></div></section>
+
+<section id="p-code" hidden><h2 data-i="code">Code Editor</h2>
+<div class="bar"><b id="cf">—</b><button class="btn acc" id="save" data-i="save">Save</button></div>
+<div class="bar"><input id="fi" placeholder="Find"><input id="ri" placeholder="Replace">
+<button class="btn" id="fn" data-i="find">Find next</button><button class="btn" id="rp" data-i="replace">Replace</button><button class="btn" id="ra" data-i="replall">Replace all</button></div>
+<div class="bar"><select id="efont" class="fp"></select><input type="number" id="efs" value="14" min="8" max="40"><input type="color" id="ecol" value="#ffffff">
+<select id="eal"><option value="left">Left</option><option value="right">Right</option><option value="center">Center</option></select></div>
+<div class="fprev"></div>
+<div id="lint" class="muted"></div>
+<div class="ed" id="edw"><div class="gw"><div id="gut"></div></div><div class="tw"><pre id="hl"></pre><textarea id="ta" spellcheck="false" autocapitalize="off" autocorrect="off" wrap="off"></textarea></div></div></section>
+
+<section id="p-texture" hidden><h2 data-i="texture">Texture Editor</h2>
+<div class="muted">Open a PNG/JPG from File Explorer. <span id="tf"></span></div>
+<div class="bar"><input id="tt" placeholder="Text"><button class="btn" id="atx">Add text</button>
+<label class="btn">Add image<input type="file" id="aim" accept="image/*" hidden></label><button class="btn danger" id="dl">Delete layer</button></div>
+<div class="bar"><select id="tfont" class="fp"></select><input type="color" id="tc" value="#ffffff">
+<label>Size <input type="range" id="ts" min="8" max="2000" value="100"></label><label>Rotate <input type="range" id="tr" min="-180" max="180" value="0"></label></div>
+<div class="fprev"></div>
+<div class="bar"><button class="btn acc" id="tsave">Apply to file in project</button><button class="btn" id="tdl">Download image</button></div>
+<div class="cvw"><canvas id="cv" width="512" height="512"></canvas></div></section>
+
+<section id="p-vehicle" hidden><h2 data-i="vehicle">Vehicle Editor</h2>
+<div id="vinfo" class="panel"></div>
+<div class="bar"><select id="dae"></select><button class="btn acc" id="ld">Load model</button><button class="btn" id="ph">Placeholder</button></div>
+<div class="bar"><button class="btn vb" data-v="front">Front</button><button class="btn vb" data-v="rear">Rear</button><button class="btn vb" data-v="side">Side</button><button class="btn vb" data-v="top">Top</button><button class="btn vb" data-v="iso">3/4</button></div>
+<div class="cvw v3"><canvas id="v3"></canvas><div id="vph" hidden>ILLUSTRATIVE PLACEHOLDER — not the actual vehicle</div></div>
+<p class="muted">Geometry only (neutral grey material). Views are relative to the model's own axes. Drag to rotate, pinch/scroll to zoom.</p></section>
+
+<section id="p-package" hidden><h2 data-i="package">Package Creator</h2>
+<div id="rl" class="panel"></div>
+<div class="bar"><input id="pn" value="my-beamng-mod"><label><input type="checkbox" id="flat" checked> Merge sources into zip root (BeamNG expects <code>vehicles/…</code> at root)</label></div>
+<button class="btn acc big" id="pk" data-i="export">Export ZIP</button>
+<p class="muted">Output is ZIP only. RAR creation is not possible in a browser (proprietary format).</p></section>
+
+<section id="p-settings" hidden><h2 data-i="settings">Settings</h2>
+<div class="bar"><button class="btn" data-l="en">English</button><button class="btn" data-l="ar">العربية</button></div>
+<p class="muted">Fonts are defined by the site owner in <code>fonts/fonts.json</code>; users can only choose from that list.</p></section>
+
+<footer><progress id="bar" max="1" value="0"></progress> <span id="bt"></span><div id="log"></div></footer>
+</main><script src="js/app.js"></script></body></html>
