@@ -1,356 +1,133 @@
-:root{
---bg:#101114;
---pn:#191B20;
---bd:#30333A;
---ac:#E6A23C;
---tx:#fff;
+/* ===== BEAMNG COLORFUL NAVIGATION ===== */
+
+header {
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #17191f, #222630);
+    border-bottom: 2px solid #383d48;
 }
 
-*{box-sizing:border-box}
-
-html{
-direction:rtl;
+.logo {
+    font-size: 23px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: #ffad32;
+    text-shadow: 0 0 14px #ffad3244;
 }
 
-body{
-margin:0;
-background:var(--bg);
-color:var(--tx);
-font:16px system-ui,'Segoe UI',Tahoma,sans-serif;
-text-align:right;
+nav {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    padding: 5px 2px 12px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #ffad32 #242832;
 }
 
-header{
-position:sticky;
-top:0;
-z-index:5;
-background:var(--pn);
-border-bottom:1px solid var(--bd);
-padding:10px 14px;
+nav button {
+    flex: 0 0 auto;
+    min-width: 125px;
+    min-height: 65px;
+    padding: 10px 16px;
+    border: 2px solid #3a404d;
+    border-radius: 15px;
+    background: #292e39;
+    color: #f5f5f5;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: .2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    box-shadow: 0 4px 0 #15171c;
 }
 
-.logo{
-color:var(--ac);
-letter-spacing:1px;
+nav button::before {
+    font-size: 21px;
 }
 
-nav{
-display:flex;
-gap:6px;
-overflow-x:auto;
-margin-top:8px;
-direction:rtl;
+nav button[data-t="home"]::before {
+    content: "🏠";
 }
 
-nav button{
-flex:none;
-min-height:44px;
-padding:0 14px;
-background:none;
-color:var(--tx);
-border:1px solid var(--bd);
-border-radius:8px;
-font:inherit;
+nav button[data-t="vehicle"]::before {
+    content: "🚘";
 }
 
-nav button.on{
-background:var(--ac);
-color:#000;
-border-color:var(--ac);
+nav button[data-t="explorer"]::before {
+    content: "📁";
 }
 
-main{
-padding:14px;
-max-width:1100px;
-margin:auto;
+nav button[data-t="texture"]::before {
+    content: "🎨";
 }
 
-h2{margin:.3em 0}
-
-.bar{
-display:flex;
-flex-wrap:wrap;
-gap:8px;
-align-items:center;
-margin:8px 0;
+nav button[data-t="code"]::before {
+    content: "💻";
 }
 
-.btn,input,select,button{
-min-height:44px;
-font:inherit;
-color:var(--tx);
-background:var(--pn);
-border:1px solid var(--bd);
-border-radius:8px;
-padding:0 12px;
+nav button[data-t="package"]::before {
+    content: "📦";
 }
 
-.btn{
-display:inline-flex;
-align-items:center;
-justify-content:center;
-cursor:pointer;
+nav button[data-t="settings"]::before {
+    content: "⚙️";
 }
 
-.btn.acc{
-background:var(--ac);
-color:#000;
-border-color:var(--ac);
+nav button:nth-child(1) {
+    border-color: #e5a13b;
 }
 
-.btn.danger{
-border-color:#c0504d;
-color:#ff8f8c;
+nav button:nth-child(2) {
+    border-color: #42a5f5;
 }
 
-.btn.big{
-min-height:56px;
-padding:0 24px;
+nav button:nth-child(3) {
+    border-color: #4caf80;
 }
 
-input[type=color]{
-padding:2px;
-width:52px;
+nav button:nth-child(4) {
+    border-color: #b47aff;
 }
 
-input[type=range]{
-padding:0;
+nav button:nth-child(5) {
+    border-color: #26c6da;
 }
 
-.panel{
-background:var(--pn);
-border:1px solid var(--bd);
-border-radius:8px;
-padding:12px;
+nav button:nth-child(6) {
+    border-color: #ff8a65;
 }
 
-.muted{
-opacity:.7;
-font-size:14px;
+nav button:nth-child(7) {
+    border-color: #9e9e9e;
 }
 
-table{
-border-collapse:collapse;
-width:100%;
-direction:rtl;
+nav button.on {
+    background: linear-gradient(135deg, #ffb844, #ff8c24);
+    color: #171717;
+    border-color: #ffd080;
+    box-shadow: 0 4px 0 #a95a14, 0 0 16px #ffad3244;
+    transform: translateY(-2px);
 }
 
-th,td{
-border:1px solid var(--bd);
-padding:8px;
-text-align:right;
-vertical-align:top;
+nav button:active {
+    transform: scale(.96);
 }
 
-th{
-color:var(--ac);
-width:120px;
-}
+@media (max-width: 600px) {
+    header {
+        padding: 12px;
+    }
 
-#tree{
-max-height:60vh;
-overflow:auto;
-direction:rtl;
-}
+    .logo {
+        font-size: 20px;
+    }
 
-#tree ul{
-list-style:none;
-margin:0;
-padding-inline-start:18px;
-}
-
-#tree summary,
-#tree .f{
-padding:9px 6px;
-cursor:pointer;
-border-radius:6px;
-}
-
-#tree .on{
-background:var(--ac);
-color:#000;
-}
-
-/* محرر الأكواد يبقى LTR */
-
-.ed{
-display:flex;
-height:60vh;
-border:1px solid var(--bd);
-border-radius:8px;
-background:var(--pn);
-overflow:hidden;
-direction:ltr;
---fs:14px;
---tc:#fff;
-}
-
-.gw{
-width:52px;
-overflow:hidden;
-border-inline-end:1px solid var(--bd);
-background:#14161a;
-flex:none;
-}
-
-#gut{
-padding:10px 6px;
-text-align:right;
-color:#777;
-font-size:var(--fs);
-line-height:1.5;
-}
-
-#gut .bad{
-background:#7a1f1f;
-color:#fff;
-}
-
-.tw{
-position:relative;
-flex:1;
-overflow:hidden;
-}
-
-#hl,#ta{
-position:absolute;
-top:0;
-left:0;
-margin:0;
-padding:10px;
-font-size:var(--fs);
-line-height:1.5;
-white-space:pre;
-tab-size:2;
-border:0;
-text-align:left;
-direction:ltr;
-}
-
-#hl{
-color:var(--tc);
-pointer-events:none;
-min-width:100%;
-}
-
-#ta{
-width:100%;
-height:100%;
-background:transparent;
-color:transparent;
-caret-color:#fff;
-resize:none;
-overflow:auto;
-border-radius:0;
-outline:0;
-}
-
-.c{color:#6a9955}
-.s{color:#ce9178}
-.n{color:#b5cea8}
-.k{color:#569cd6}
-.p{color:var(--ac)}
-
-.fprev{
-padding:8px;
-border:1px dashed var(--bd);
-border-radius:8px;
-margin:6px 0;
-font-size:20px;
-}
-
-.cvw{
-background:#000;
-border:1px solid var(--bd);
-border-radius:8px;
-overflow:auto;
-position:relative;
-}
-
-#cv{
-max-width:100%;
-touch-action:none;
-display:block;
-margin:auto;
-background:repeating-conic-gradient(#222 0 25%,#2c2c2c 0 50%) 0/20px 20px;
-}
-
-.v3{
-height:55vh;
-overflow:hidden;
-}
-
-#v3{
-width:100%;
-height:100%;
-display:block;
-touch-action:none;
-}
-
-#vph{
-position:absolute;
-top:8px;
-inset-inline:8px;
-background:var(--ac);
-color:#000;
-padding:6px;
-border-radius:6px;
-font-weight:700;
-text-align:center;
-}
-
-#rl label{
-display:block;
-padding:8px;
-}
-
-footer{
-margin-top:16px;
-border-top:1px solid var(--bd);
-padding-top:8px;
-}
-
-#bar{
-width:200px;
-accent-color:var(--ac);
-}
-
-#log div{
-font-size:13px;
-padding:2px 0;
-}
-
-#log .err{
-color:#ff8f8c;
-}
-
-/* تحسين الآيباد والجوال */
-
-@media(max-width:600px){
-
-main{
-padding:10px;
-}
-
-header{
-padding:8px;
-}
-
-nav button{
-font-size:14px;
-padding:0 11px;
-}
-
-.ed{
-height:55vh;
-}
-
-.panel{
-padding:9px;
-}
-
-.btn.big{
-width:100%;
-}
-
+    nav button {
+        min-width: 118px;
+        min-height: 62px;
+        font-size: 15px;
+    }
 }
