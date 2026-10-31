@@ -9,7 +9,7 @@ const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
 const clean=p=>p.split('/').filter(x=>x&&x!=='.'&&x!=='..').join('/');
 const ext=p=>p.includes('.')?p.split('.').pop().toLowerCase():'';
 const fmt=n=>n>1e6?(n/1e6).toFixed(1)+' MB':n>1e3?(n/1e3).toFixed(1)+' KB':n+' B';
-const log=(m,bad)=>{const d=document.createElement('div');d.textContent=m;if(bad)d.className='err';$('#log').prepend(d)};
+const log=(m,bad)=>{const d=document.createElement('div');d.textContent=m;if(bad)d.className='err';$('#log').prepend(d);while($('#log').children.length>6)$('#log').lastChild.remove()};
 const prog=(v,t)=>{$('#bar').value=v;$('#bt').textContent=t||''};
 const under=p=>[...vfs.keys()].filter(k=>k===p||k.startsWith(p+'/'));
 const roots=()=>[...new Set([...vfs.keys()].map(k=>k.split('/')[0]))];
@@ -25,10 +25,13 @@ function show(id){$$('section').forEach(s=>s.hidden=s.id!=='p-'+id);$$('#nav but
 
 /* ---------- fonts (admin-defined in fonts/fonts.json) ---------- */
 let FONTS=[];
-async function loadFonts(){try{FONTS=await(await fetch('fonts/fonts.json')).json()}catch{FONTS=[{name:'Arial'},{name:'Tahoma'},{name:'Courier New'}]}
- for(const f of FONTS)if(f.file){try{document.fonts.add(await new FontFace(f.name,`url(${f.file})`).load())}catch{log('ملف الخط غير موجود: '+f.file,1)}}
+async function loadFonts(){try{const r=await fetch('fonts/fonts.json',{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);
+  let t=(await r.text()).replace(/^\uFEFF/,'').replace(/\/\/.*|\/\*[\s\S]*?\*\//g,'').replace(/,(\s*[}\]])/g,'$1');let j=JSON.parse(t);if(!Array.isArray(j))j=j.fonts;
+  FONTS=j.filter(f=>f&&f.name)}catch(e){log('تعذّر قراءة fonts/fonts.json ('+e.message+') — استُخدمت خطوط النظام. تأكد أن الملف داخل مجلد fonts وأن الموقع يعمل عبر https (وليس من ملفات الجهاز).',1)}
+ if(!FONTS.length)FONTS=[{name:'Arial'},{name:'Tahoma'},{name:'Courier New'}];
+ for(const f of FONTS)if(f.file){try{document.fonts.add(await new FontFace(f.name,`url(${f.file})`).load())}catch{log('ملف الخط غير موجود أو تالف: '+f.file+' (تحقق من الاسم وحالة الأحرف)',1)}}
  $$('select.fp').forEach(s=>{s.innerHTML=FONTS.map(f=>`<option style="font-family:'${f.name}'">${f.name}</option>`).join('');
-  const pv=()=>{const p=s.parentNode.nextElementSibling;p.style.fontFamily=`'${s.value}'`;p.textContent='BeamNG Cars Studio 0123 — ستوديو سيارات بيمإن جي'};
+  const pv=()=>{const p=s.parentNode.querySelector('.fprev');if(!p)return;p.style.fontFamily=`'${s.value}'`;p.textContent='BeamNG Cars Studio 0123 — ستوديو سيارات بيمإن جي'};
   s.addEventListener('change',pv);pv()});edStyle()}
 
 /* ---------- archives ---------- */
@@ -45,9 +48,10 @@ async function imps(inp){for(const f of inp.files)await importArchive(f);inp.val
 $('#imp').onchange=async e=>{await imps(e.target);show('explorer')};$('#imp2').onchange=e=>imps(e.target);
 
 /* ---------- explorer ---------- */
+const OPEN=new Map();
 function renderTree(){const root={};for(const p of [...vfs.keys()].sort()){let n=root;const a=p.split('/');a.forEach((s,i)=>{n=n[s]??=(i===a.length-1?null:{})})}
  const mk=(o,pre)=>{const ul=document.createElement('ul');for(const k of Object.keys(o).sort((a,b)=>(!o[a])-(!o[b])||a.localeCompare(b))){const p=pre+k,li=document.createElement('li');
-  if(o[k]){const d=document.createElement('details');d.open=pre==='';const s=document.createElement('summary');s.textContent='📁 '+k;s.dataset.p=p;d.append(s,mk(o[k],p+'/'));li.append(d)}
+  if(o[k]){const d=document.createElement('details');d.open=OPEN.has(p)?OPEN.get(p):pre.split('/').length<=3;d.ontoggle=()=>OPEN.set(p,d.open);const s=document.createElement('summary');s.textContent='📁 '+k;s.dataset.p=p;d.append(s,mk(o[k],p+'/'));li.append(d)}
   else{const b=document.createElement('div');b.className='f';b.textContent='📄 '+k+'  ('+fmt(vfs.get(p).length)+')';b.dataset.p=p;li.append(b)}
   ul.append(li)}return ul};
  const t=$('#tree');t.replaceChildren(vfs.size?mk(root,''):Object.assign(document.createElement('div'),{textContent:'لا توجد ملفات بعد. استورد مود أو أضف ملفات.'}));mark()}
@@ -73,13 +77,24 @@ $('#open').onclick=()=>{if(!need())return;if(!vfs.has(sel))return log('اختر 
 function hl(t,e){const lua=e==='lua',kw=/^(lua|cs)$/.test(e)?'function|local|end|if|then|else|elseif|for|while|do|return|nil|true|false|and|or|not|class|public|private|static|void|var|new|using|namespace':'true|false|null';
  const re=new RegExp('(\\/\\/.*|\\/\\*[\\s\\S]*?\\*\\/'+(lua?'|--.*':'')+')|("(?:\\\\.|[^"\\\\\\n])*")|(\\b-?\\d+\\.?\\d*\\b)|\\b('+kw+')\\b|([{}\\[\\]])','g');
  return esc(t).replace(re,(m,c,s,n,k,p)=>c?`<span class=c>${c}</span>`:s?`<span class=s>${s}</span>`:n?`<span class=n>${n}</span>`:k?`<span class=k>${k}</span>`:`<span class=p>${p}</span>`)}
-function lint(t,e){if(!/^(json|jbeam)$/.test(e)||t.length>1e6)return null;
- const s=t.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g,m=>m.replace(/[^\n]/g,' ')).replace(/([\]}"\del])([ \t]*\r?\n\s*)(["\[{\-\d])/g,'$1,$2$3').replace(/,(\s*[}\]])/g,' $1');
- try{JSON.parse(s)}catch(x){const m=/position (\d+)/.exec(x.message),l=/line (\d+)/.exec(x.message);return{line:l?+l[1]:m?s.slice(0,+m[1]).split('\n').length:0,msg:x.message.slice(0,100)}}return null}
+function lint(t,e){if(!/^(json|jbeam)$/.test(e)||t.length>3e6)return null;
+ const re=/\s+|\/\/[^\n]*|\/\*[\s\S]*?\*\/|"(?:\\[\s\S]|[^"\\])*"|-?\d+\.?\d*(?:[eE][+-]?\d+)?|true|false|null|[{}\[\]:,]|[\s\S]/gy;
+ let ln=1,S=[],root=false,m;const er=(msg,line)=>({line,msg}),done=()=>{const p=S[S.length-1];if(p)p.s='a';else root=true};
+ while((m=re.exec(t))){const x=m[0],l=ln;ln+=(x.match(/\n/g)||[]).length;if(/^(\s|\/\/|\/\*)/.test(x))continue;
+  const p=S[S.length-1];if(!p&&root)return er('محتوى زائد بعد نهاية الملف',l);
+  const okv=!p||p.t==='a'||p.s==='v';
+  if(x==='{'||x==='['){if(!okv)return er(p.s==='c'?'متوقع «:» بعد اسم الحقل':'قوس غير متوقع',l);S.push({t:x==='{'?'o':'a',s:x==='{'?'k':'v',l})}
+  else if(x==='}'||x===']'){if(!p||(x==='}')!==(p.t==='o'))return er(`القوس «${x}» لا يطابق ما قبله`,l);if(p.t==='o'&&(p.s==='c'||p.s==='v'))return er('قيمة أو «:» ناقصة قبل الإغلاق',l);S.pop();done()}
+  else if(x===':'){if(!p||p.t!=='o'||p.s!=='c')return er('«:» في غير مكانها',l);p.s='v'}
+  else if(x===','){if(!p||(p.t==='o'&&p.s!=='a'))return er('فاصلة في غير مكانها',l);if(p.t==='o')p.s='k'}
+  else if(x[0]==='"'&&p&&p.t==='o'&&(p.s==='k'||p.s==='a'))p.s='c';
+  else if(x.length>1&&x[0]==='"'||/^(-?\d|true$|false$|null$)/.test(x)){if(!okv)return er(p.s==='c'?'متوقع «:» بعد اسم الحقل':'قيمة في غير مكانها',l);done()}
+  else return er(x==='"'?'نص غير مغلق (ينقصه «"»)':x==='/'?'تعليق غير مغلق':`رمز غير متوقع «${x}»`,l)}
+ if(S.length)return er('قوس غير مغلق «'+(S[S.length-1].t==='o'?'{':'[')+'»',S[S.length-1].l);return null}
 function upd(){const t=$('#ta').value,e=ext(cur||''),err=lint(t,e);
  $('#hl').innerHTML=(t.length>4e5?esc(t):hl(t,e))+'\n';
  $('#gut').innerHTML=t.split('\n').map((_,i)=>`<div${err&&err.line===i+1?' class=bad':''}>${i+1}</div>`).join('');
- $('#lint').textContent=err?`⚠ سطر ${err.line||'?'}: ${err.msg} (JBeam يسمح بصياغة مرنة، راجع السطر المعلَّم)`:/^(json|jbeam)$/.test(e)?'✓ لا أخطاء':'';
+ $('#lint').textContent=err?`⚠ سطر ${err.line||'?'}: ${err.msg} `:/^(json|jbeam)$/.test(e)?'✓ لا أخطاء':'';
  $('#cf').textContent=(cur||'—')+(dirty?' •':'')}
 function openText(p){if(dirty&&!confirm('التعديلات غير المحفوظة ستضيع. متابعة؟'))return;cur=p;$('#ta').value=new TextDecoder().decode(vfs.get(p));dirty=false;upd();show('code')}
 let tm;const ta=$('#ta');
@@ -124,7 +139,8 @@ $('#tsave').onclick=()=>expTex(true);$('#tdl').onclick=()=>expTex(false);
 /* ---------- vehicle / 3D ---------- */
 function vOpen(){const ds=[...vfs.keys()].filter(k=>ext(k)==='dae');$('#dae').innerHTML=ds.map(d=>`<option>${esc(d)}</option>`).join('')||'<option value="">(لا توجد ملفات dae)</option>';
  const inf=[...vfs.keys()].filter(k=>/(^|\/)info\.json$/.test(k)),j=[...vfs.keys()].filter(k=>ext(k)==='jbeam').length;let h='';
- for(const k of inf){try{const o=JSON.parse(new TextDecoder().decode(vfs.get(k)));if(o.Name||o.Brand)h+=`<div>🚗 <b>${esc(String(o.Brand||''))} ${esc(String(o.Name||''))}</b> <span class=muted>${esc(k)}</span></div>`}catch{}}
+ for(const k of inf){const t=new TextDecoder().decode(vfs.get(k)),g=n=>(new RegExp('"'+n+'"\\s*:\\s*"([^"]*)"').exec(t)||[])[1]||'';
+  if(g('Name')||g('Brand'))h+=`<div>🚗 <b>${esc(g('Brand'))} ${esc(g('Name'))}</b> ${g('Body Style')?'· '+esc(g('Body Style')):''} ${g('Author')?'· '+esc(g('Author')):''}<br><span class=muted>${esc(k)}</span></div>`}
  $('#vinfo').innerHTML=(h||'لم يُعثر على info.json للمركبة.')+`<div class=muted>${j} ملف jbeam، ${ds.length} ملف dae</div>`;if(V.t)V.t.rs()}
 async function V(){if(V.t)return V.t;const[t,o,c]=await Promise.all([import('three'),import('three/addons/controls/OrbitControls.js'),import('three/addons/loaders/ColladaLoader.js')]);
  const cv=$('#v3'),r=new t.WebGLRenderer({canvas:cv,antialias:true}),s=new t.Scene();s.background=new t.Color(0x191B20);s.add(new t.HemisphereLight(0xffffff,0x222233,1.6));
