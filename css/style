@@ -36,3 +36,9 @@ nav button.on{background:none;color:var(--ac);border-top:3px solid var(--ac);bor
 .card i{font-style:normal;font-size:28px}.card small{opacity:.65;font-size:13px}.card:active{border-color:var(--ac)}
 .panel{border-radius:14px;margin:8px 0}summary{cursor:pointer;min-height:32px;padding:4px 0;font-weight:600}.ok{color:#7ad98b}.warn{color:var(--ac)}.no{color:#ff8f8c}
 .fprev{flex:1 1 100%}
+html,body{overflow-x:hidden;max-width:100%}main{overflow-x:hidden}#log div,.panel,.muted,#sel{overflow-wrap:anywhere}
+.bar>input,.bar>select{min-width:0;flex:1 1 130px;max-width:100%}.bar>.btn{flex:0 0 auto}#tree{overflow-x:auto}
+.card{min-width:0}.logo{font-size:15px}header .muted{font-size:12px}
+#cf{flex:1 1 100%;overflow-wrap:anywhere;direction:ltr;text-align:start;font-size:14px}
+#tree .f{display:flex;justify-content:space-between;gap:8px;direction:ltr;text-align:left;overflow-wrap:anywhere}
+#tree summary{direction:ltr;text-align:left}#tree ul{direction:ltr}
