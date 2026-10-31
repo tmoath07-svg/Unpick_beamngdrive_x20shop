@@ -5,66 +5,66 @@
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 </head><body>
-<header><b class="logo">BEAMNG CARS STUDIO</b><span class="muted">استوديو تعديل سيارات بيم إن جي</span></header>
+<header><b class="logo">BEAMNG CARS STUDIO</b><span class="muted">استوديو سيارات بيم إن جي</span></header>
 <main>
-<section id="p-home" class="home"><h2>أهلاً بك 👋</h2>
-<p class="muted">استورد المود، عدّل ملفاته وخاماته، ثم صدّره جاهزاً. كل شيء يتم داخل متصفحك ولا يُرفع أي ملف.</p>
-<label class="btn big acc wide">📦 استيراد مود (ZIP / RAR)<input type="file" id="imp" accept=".zip,.rar" multiple hidden></label>
+<section id="p-home" class="home"><div class="hero"><h2>هلا والله 👋</h2>
+<p>حط المود حقك، عدّل ملفاته وخاماته، وبعدين صدّره جاهز. كل شي يصير داخل متصفحك وما نرفع أي ملف لأي مكان.</p>
+<label class="btn big acc wide">📦 حط المود (ZIP / RAR)<input type="file" id="imp" accept=".zip,.rar" multiple hidden></label></div>
 <div class="cards">
-<button class="card" data-go="explorer"><i>📁</i><b>الملفات</b><small>تصفح، أضف، احذف، انقل</small></button>
-<button class="card" data-go="code"><i>📝</i><b>محرر الكود</b><small>JBeam و JSON و Lua</small></button>
-<button class="card" data-go="texture"><i>🎨</i><b>الخامات</b><small>أضف نصاً أو صورة</small></button>
-<button class="card" data-go="vehicle"><i>🚗</i><b>المركبة 3D</b><small>معاينة موديل DAE</small></button>
-<button class="card" data-go="package"><i>🎁</i><b>إنشاء حزمة</b><small>دمج وتصدير ZIP</small></button>
+<button class="card" data-go="explorer"><i>📁</i><b>ملفاتك</b><small>شوفها وعدّلها وانقلها</small></button>
+<button class="card" data-go="code"><i>📝</i><b>الكود</b><small>عدّل JBeam و JSON و Lua</small></button>
+<button class="card" data-go="texture"><i>🎨</i><b>الخامات</b><small>حط كلام أو صورة على الخامة</small></button>
+<button class="card" data-go="vehicle"><i>🚗</i><b>السيارة 3D</b><small>شوف موديل السيارة</small></button>
+<button class="card" data-go="package"><i>🎁</i><b>حزمتك</b><small>اجمع وصدّر ZIP</small></button>
 </div>
-<details class="panel"><summary>ما الذي يعمل وما لا يعمل؟</summary>
-<p><b class="ok">يعمل:</b> استيراد ZIP، شجرة الملفات (إضافة/حذف/تسمية/نقل)، محرر الكود مع التلوين وأرقام الأسطر والبحث والاستبدال وفحص أخطاء JSON/JBeam، الخطوط، معاينة DAE، محرر خامات PNG/JPG، تصدير ZIP.</p>
-<p><b class="warn">يحتاج إعداداً:</b> فك RAR يحتاج وضع ملفات libarchive.js في مجلد vendor (الشرح في README).</p>
-<p><b class="no">غير مدعوم:</b> إنشاء RAR (غير ممكن في المتصفح، التصدير ZIP)، DDS (يُحفظ كما هو دون تعديل)، معاينة UV، عرض الخامات على الموديل، الحفظ بعد إعادة تحميل الصفحة.</p></details></section>
+<details class="panel"><summary>وش اللي يشتغل وش اللي ما يشتغل؟</summary>
+<p><b class="ok">يشتغل:</b> فتح ZIP، شجرة الملفات (ضيف/امسح/غيّر الاسم/انقل)، محرر الكود بالتلوين وأرقام الأسطر والبحث والتبديل وفحص أخطاء JSON/JBeam، الخطوط، معاينة DAE، محرر خامات PNG/JPG، تصدير ZIP.</p>
+<p><b class="warn">يبي إعداد:</b> فك RAR يبي تحط ملفات libarchive.js في مجلد vendor (الشرح في README).</p>
+<p><b class="no">ما يشتغل:</b> إنشاء RAR (مستحيل بالمتصفح، التصدير ZIP)، DDS (يبقى زي ما هو بدون تعديل)، معاينة UV، الخامات على الموديل، وحفظ شغلك بعد ما تعيد تحميل الصفحة.</p></details></section>
 
-<section id="p-explorer" hidden><h2>📁 الملفات</h2>
+<section id="p-explorer" hidden><h2>📁 ملفاتك</h2>
 <div class="bar">
-<label class="btn acc">استيراد أرشيف<input type="file" id="imp2" accept=".zip,.rar" multiple hidden></label>
-<label class="btn">➕ إضافة ملفات<input type="file" id="addf" multiple hidden></label>
+<label class="btn acc">حط مود<input type="file" id="imp2" accept=".zip,.rar" multiple hidden></label>
+<label class="btn">➕ ضيف ملفات<input type="file" id="addf" multiple hidden></label>
 <button class="btn" id="newf">📄 ملف جديد</button></div>
-<div class="bar"><button class="btn" id="open">فتح</button><button class="btn" id="ren">✏️ تسمية</button><button class="btn" id="mov">↔️ نقل</button><button class="btn danger" id="del">🗑 حذف</button></div>
-<div id="sel" class="muted">اضغط على ملف أو مجلد لتحديده</div><div id="tree" class="panel"></div></section>
+<div class="bar"><button class="btn" id="open">افتح</button><button class="btn" id="ren">✏️ غيّر الاسم</button><button class="btn" id="mov">↔️ انقل</button><button class="btn danger" id="del">🗑 امسح</button></div>
+<div id="sel" class="muted">اضغط على ملف أو مجلد عشان تحدده</div><div id="tree" class="panel"></div></section>
 
-<section id="p-code" hidden><h2>📝 محرر الكود</h2>
-<div class="bar"><b id="cf">—</b><button class="btn acc" id="save">💾 حفظ</button></div>
+<section id="p-code" hidden><h2>📝 الكود</h2>
+<div class="bar"><b id="cf">—</b><button class="btn acc" id="save">💾 احفظ</button></div>
 <div id="lint" class="muted"></div>
-<div class="ed" id="edw"><div class="gw"><div id="gut"></div></div><div class="tw"><pre id="hl"></pre><textarea id="ta" spellcheck="false" autocapitalize="off" autocorrect="off" wrap="off"></textarea></div></div>
-<details class="panel"><summary>🔍 بحث واستبدال</summary><div class="bar"><input id="fi" placeholder="بحث"><input id="ri" placeholder="استبدال بـ">
-<button class="btn" id="fn">التالي</button><button class="btn" id="rp">استبدال</button><button class="btn" id="ra">استبدال الكل</button></div></details>
-<details class="panel"><summary>🔤 الخط والمظهر</summary><div class="bar"><select id="efont" class="fp"></select><div class="fprev"></div><input type="number" id="efs" value="14" min="8" max="40"><input type="color" id="ecol" value="#ffffff">
+<div class="ed" id="edw"><div class="gw"><div id="gin"><pre id="gut"></pre><i id="gerr"></i></div></div><div class="tw"><pre id="hl"></pre><textarea id="ta" spellcheck="false" autocapitalize="off" autocorrect="off" wrap="off"></textarea></div></div>
+<details class="panel"><summary>🔍 دوّر وبدّل</summary><div class="bar"><input id="fi" placeholder="دوّر عن"><input id="ri" placeholder="بدّلها بـ">
+<button class="btn" id="fn">اللي بعده</button><button class="btn" id="rp">بدّل</button><button class="btn" id="ra">بدّل الكل</button></div></details>
+<details class="panel"><summary>🔤 الخط والشكل</summary><div class="bar"><select id="efont" class="fp"></select><div class="fprev"></div><input type="number" id="efs" value="14" min="8" max="40"><input type="color" id="ecol" value="#ffffff">
 <select id="eal"><option value="left">يسار</option><option value="right">يمين</option><option value="center">وسط</option></select></div></details></section>
 
 <section id="p-texture" hidden><h2>🎨 الخامات</h2>
-<div class="muted">افتح صورة PNG/JPG من صفحة الملفات (زر «فتح»). <span id="tf"></span></div>
-<div class="bar"><input id="tt" placeholder="اكتب النص"><button class="btn acc" id="atx">إضافة نص</button>
-<label class="btn">🖼 إضافة صورة<input type="file" id="aim" accept="image/*" hidden></label><button class="btn danger" id="dl">حذف العنصر</button></div>
+<div class="muted">افتح صورة PNG أو JPG من «ملفاتك» بزر «افتح». <span id="tf"></span></div>
+<div class="bar"><input id="tt" placeholder="اكتب الكلام"><button class="btn acc" id="atx">ضيف كلام</button>
+<label class="btn">🖼 ضيف صورة<input type="file" id="aim" accept="image/*" hidden></label><button class="btn danger" id="dl">امسح العنصر</button></div>
 <div class="bar"><select id="tfont" class="fp"></select><div class="fprev"></div><input type="color" id="tc" value="#ffffff">
-<label>الحجم <input type="range" id="ts" min="8" max="2000" value="100"></label><label>التدوير <input type="range" id="tr" min="-180" max="180" value="0"></label></div>
-<p class="muted">اسحب العنصر على الصورة لتحريكه.</p>
+<label>الحجم <input type="range" id="ts" min="8" max="2000" value="100"></label><label>الدوران <input type="range" id="tr" min="-180" max="180" value="0"></label></div>
+<p class="muted">جرّ العنصر على الصورة عشان تحركه.</p>
 <div class="cvw"><canvas id="cv" width="512" height="512"></canvas></div>
-<div class="bar"><button class="btn acc" id="tsave">حفظ في المشروع</button><button class="btn" id="tdl">تنزيل الصورة</button></div></section>
+<div class="bar"><button class="btn acc" id="tsave">احفظ بالمشروع</button><button class="btn" id="tdl">نزّل الصورة</button></div></section>
 
-<section id="p-vehicle" hidden><h2>🚗 المركبة</h2>
+<section id="p-vehicle" hidden><h2>🚗 السيارة</h2>
 <div id="vinfo" class="panel"></div>
-<div class="bar"><select id="dae"></select><button class="btn acc" id="ld">تحميل الموديل</button><button class="btn" id="ph">نموذج توضيحي</button></div>
-<div class="bar"><button class="btn vb" data-v="front">أمام</button><button class="btn vb" data-v="rear">خلف</button><button class="btn vb" data-v="side">جانب</button><button class="btn vb" data-v="top">علوي</button><button class="btn vb" data-v="iso">3/4</button></div>
-<div class="cvw v3"><canvas id="v3"></canvas><div id="vph" hidden>نموذج توضيحي فقط — وليس السيارة الحقيقية</div></div>
-<p class="muted">يُعرض الشكل فقط بلون رمادي (بدون الخامات). حرّك بإصبعك للتدوير وبإصبعين للتكبير.</p></section>
+<div class="bar"><select id="dae"></select><button class="btn acc" id="ld">حمّل الموديل</button><button class="btn" id="ph">شكل توضيحي</button></div>
+<div class="bar"><button class="btn vb" data-v="front">قدام</button><button class="btn vb" data-v="rear">ورا</button><button class="btn vb" data-v="side">جنب</button><button class="btn vb" data-v="top">فوق</button><button class="btn vb" data-v="iso">3/4</button></div>
+<div class="cvw v3"><canvas id="v3"></canvas><div id="vph" hidden>هذا شكل توضيحي بس — مو السيارة الحقيقية</div></div>
+<p class="muted">يطلع الشكل بس بلون رمادي (بدون خامات). حرّك بإصبعك تلف الموديل، وبإصبعين تكبّر وتصغّر.</p></section>
 
-<section id="p-package" hidden><h2>🎁 إنشاء حزمة</h2>
-<p class="muted">اختر المصادر التي تريد دمجها في ملف ZIP واحد.</p>
+<section id="p-package" hidden><h2>🎁 حزمتك</h2>
+<p class="muted">اختر اللي تبي تدمجه في ملف ZIP واحد.</p>
 <div id="rl" class="panel"></div>
-<div class="bar"><input id="pn" value="my-beamng-mod"><label><input type="checkbox" id="flat" checked> دمج المصادر في جذر الحزمة (يلزم أن يكون <code>vehicles/…</code> في الجذر)</label></div>
-<button class="btn acc big wide" id="pk">⬇️ تصدير ZIP</button>
-<p class="muted">التصدير ZIP فقط؛ إنشاء RAR غير ممكن داخل المتصفح.</p></section>
+<div class="bar"><input id="pn" value="my-beamng-mod"><label><input type="checkbox" id="flat" checked> دمج كل شي في جذر الحزمة (لازم <code>vehicles/…</code> يكون بالجذر)</label></div>
+<button class="btn acc big wide" id="pk">⬇️ صدّر ZIP</button>
+<p class="muted">التصدير ZIP بس؛ إنشاء RAR ما ينفع داخل المتصفح.</p></section>
 
 <section id="p-settings" hidden><h2>⚙️ الإعدادات</h2>
-<div class="panel"><p>الخطوط يحددها مالك الموقع في <code>fonts/fonts.json</code> ولا يستطيع المستخدمون تعديلها.</p><p>الواجهة عربية بالكامل (يمين لليسار).</p><p class="muted">الملفات تبقى في ذاكرة المتصفح فقط وتُفقد عند إغلاق الصفحة، فصدّر عملك قبل الخروج.</p></div></section>
+<div class="panel"><p>الخطوط يحددها صاحب الموقع في <code>fonts/fonts.json</code> وما أحد غيره يقدر يعدلها.</p><p>الواجهة عربية بلهجة نجدية، يمين لشمال.</p><p class="muted">الملفات تبقى بذاكرة المتصفح بس وتروح إذا سكرت الصفحة، فصدّر شغلك قبل لا تطلع.</p></div></section>
 
 <footer><progress id="bar" max="1" value="0"></progress> <span id="bt"></span><div id="log"></div></footer>
 </main><nav id="nav"></nav><script src="js/app.js"></script></body></html>
