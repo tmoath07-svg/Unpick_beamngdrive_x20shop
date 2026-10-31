@@ -76,3 +76,6 @@ footer .bar{align-items:center}
   .ed{height:55vh}
   nav button{min-height:58px}
 }
+
+/* File inputs stay technically present for iPad Safari; buttons open them directly. */
+.file-picker{position:fixed!important;left:-10000px!important;top:0!important;width:1px!important;height:1px!important;opacity:0!important;padding:0!important;border:0!important;pointer-events:none!important}
