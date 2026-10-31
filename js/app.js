@@ -23,7 +23,7 @@ $$('[data-l]').forEach(b=>b.onclick=()=>{lang=b.dataset.l;localStorage.setItem('
 function show(id){$$('section').forEach(s=>s.hidden=s.id!=='p-'+id);$$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===id));
  if(id==='vehicle')vOpen();if(id==='package')pkgList();scrollTo(0,0)}
 
-/* ---------- fonts ---------- */
+/* ---------- fonts (admin-defined in fonts/fonts.json) ---------- */
 let FONTS=[];
 async function loadFonts(){try{const r=await fetch('fonts/fonts.json',{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);
   let t=(await r.text()).replace(/^\uFEFF/,'').replace(/\/\/.*|\/\*[\s\S]*?\*\//g,'').replace(/,(\s*[}\]])/g,'$1');let j=JSON.parse(t);if(!Array.isArray(j))j=j.fonts;
@@ -91,53 +91,20 @@ function lint(t,e){if(!/^(json|jbeam)$/.test(e)||t.length>3e6)return null;
   else if(x.length>1&&x[0]==='"'||/^(-?\d|true$|false$|null$)/.test(x)){if(!okv)return er(p.s==='c'?'متوقع «:» بعد اسم الحقل':'قيمة في غير مكانها',l);done()}
   else return er(x==='"'?'نص غير مغلق (ينقصه «"»)':x==='/'?'تعليق غير مغلق':`رمز غير متوقع «${x}»`,l)}
  if(S.length)return er('قوس غير مغلق «'+(S[S.length-1].t==='o'?'{':'[')+'»',S[S.length-1].l);return null}
-
 let PLAIN=false;
 const isBin=u=>{const n=Math.min(u.length,4000);for(let i=0;i<n;i++)if(u[i]===0)return true;return false};
-
 function upd(){const t=$('#ta').value,e=ext(cur||''),big=PLAIN||t.length>6e4;$('#edw').classList.toggle('plain',big);const t0=performance.now();
  if(!big){$('#hl').innerHTML=hl(t,e)+'\n';if(performance.now()-t0>150)PLAIN=true}
  const n=t.split('\n').length;$('#gut').textContent=Array.from({length:n},(_,i)=>i+1).join('\n');
  const err=t.length>3e5?null:lint(t,e),g=$('#gerr');g.style.display=err&&err.line?'block':'none';if(err&&err.line)g.style.top=`calc(10px + ${err.line-1} * var(--fs) * 1.5)`;
  $('#lint').textContent=err?`⚠ سطر ${err.line||'?'}: ${err.msg}`:big&&/^(json|jbeam)$/.test(e)?'(ملف كبير: التلوين طافي عشان يخف الجهاز)':/^(json|jbeam)$/.test(e)?'✓ ما فيه أخطاء':'';
  $('#cf').textContent=(cur||'—')+(dirty?' •':'')}
-
-/* ---------- تم إصلاح فتح الملفات النصية ---------- */
-function openText(p){
- const u=vfs.get(p);
- const e=ext(p);
-
- const textExt=/^(jbeam|json|lua|txt|js|css|html|xml|ini|cfg|csv|md|py|cs|cpp|h|hpp|yaml|yml)$/i;
-
- if(!textExt.test(e)&&isBin(u))
-  return log('هذا الملف مو نص (ثنائي) وما ينفتح بالمحرر. الصور من «افتح» بالخامات، والـ DAE من صفحة السيارة.',1);
-
- if(u.length>2.5e6)
-  return log('الملف كبير مرة ('+fmt(u.length)+') وما ينفتح بالمحرر.',1);
-
+function openText(p){const u=vfs.get(p);
+ if(isBin(u))return log('هذا الملف مو نص (ثنائي) وما ينفتح بالمحرر. الصور من «افتح» بالخامات، والـ DAE من صفحة السيارة.',1);
+ if(u.length>2.5e6)return log('الملف كبير مرة ('+fmt(u.length)+') وما ينفتح بالمحرر.',1);
  if(dirty&&!confirm('فيه تعديلات ما انحفظت وراح تروح. تكمّل؟'))return;
-
- if(u.length<4e4)PLAIN=false;
- cur=p;
- dirty=false;
- show('code');
- $('#cf').textContent=p;
- $('#lint').textContent='⏳ جاري فتح الملف…';
- $('#ta').value='';
- $('#gut').textContent='';
- $('#hl').textContent='';
-
- setTimeout(()=>{
-  try{
-   ta.value=new TextDecoder('utf-8',{fatal:false}).decode(u);
-   ta.scrollTop=ta.scrollLeft=0;
-   upd();
-  }catch(err){
-   log('ما قدرت أقرأ الملف كنص: '+err.message,1);
-  }
- },40);
-}
-
+ if(u.length<4e4)PLAIN=false;cur=p;dirty=false;show('code');$('#cf').textContent=p;$('#lint').textContent='⏳ جاري فتح الملف…';$('#ta').value='';$('#gut').textContent='';$('#hl').textContent='';
+ setTimeout(()=>{ta.value=new TextDecoder().decode(u);ta.scrollTop=ta.scrollLeft=0;upd()},40)}
 let tm;const ta=$('#ta');
 ta.oninput=()=>{dirty=true;clearTimeout(tm);tm=setTimeout(upd,120)};
 ta.onscroll=()=>{$('#hl').style.transform=`translate(${-ta.scrollLeft}px,${-ta.scrollTop}px)`;$('#gin').style.transform=`translateY(${-ta.scrollTop}px)`};
