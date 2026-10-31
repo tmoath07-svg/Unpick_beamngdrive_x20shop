@@ -213,5 +213,23 @@
 
   <nav id="nav" aria-label="التنقل الرئيسي"></nav>
   <script src="app.js"></script>
+  <script>
+    // Fallback navigation handler: keeps page switching responsive if the main script handler fails.
+    document.addEventListener('click', function (event) {
+      const navButton = event.target.closest('#nav button[data-t]');
+      const cardButton = event.target.closest('[data-go]');
+      const target = navButton ? navButton.getAttribute('data-t') : (cardButton ? cardButton.getAttribute('data-go') : null);
+      if (!target) return;
+      const page = document.getElementById('p-' + target);
+      if (!page) return;
+      document.querySelectorAll('main > section').forEach(function (section) {
+        section.hidden = section !== page;
+      });
+      document.querySelectorAll('#nav button[data-t]').forEach(function (button) {
+        button.classList.toggle('on', button.getAttribute('data-t') === target);
+      });
+      window.scrollTo(0, 0);
+    }, true);
+  </script>
 </body>
 </html>
