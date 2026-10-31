@@ -30,8 +30,8 @@
         <div class="muted">BEAMNG DRIVE • MOD TOOLS</div>
         <h2>ستوديو المودات</h2>
         <p>افتح ملفات المود، عدّلها، واستخرج حزمتك من مكان واحد.</p>
-        <label class="btn acc big wide" for="imp">📦 استيراد مود ZIP / RAR</label>
-        <input id="imp" type="file" accept=".zip,.rar" multiple hidden>
+        <button class="btn acc big wide" type="button" onclick="document.getElementById('imp').click()">📦 استيراد مود ZIP / RAR</button>
+        <input id="imp" class="file-picker" type="file" accept=".zip,.rar" multiple>
       </div>
 
       <div class="cards">
@@ -47,8 +47,8 @@
         <h3>🚀 ابدأ بسرعة</h3>
         <p class="muted">استورد ملف المود، افتح المجلد من صفحة «ملفاتك»، وبعد التعديل احفظ ملفاتك ثم صدّر الحزمة.</p>
         <div class="bar">
-          <label class="btn wide" for="imp2">＋ إضافة مود آخر</label>
-          <input id="imp2" type="file" accept=".zip,.rar" multiple hidden>
+          <button class="btn wide" type="button" onclick="document.getElementById('imp2').click()">＋ إضافة مود آخر</button>
+          <input id="imp2" class="file-picker" type="file" accept=".zip,.rar" multiple>
         </div>
       </div>
     </section>
@@ -85,8 +85,8 @@
       <h2>📁 مستكشف الملفات</h2>
       <div class="panel">
         <div class="bar">
-          <label class="btn acc" for="addf">＋ إضافة ملفات</label>
-          <input id="addf" type="file" multiple hidden>
+          <button class="btn acc" type="button" onclick="document.getElementById('addf').click()">＋ إضافة ملفات</button>
+          <input id="addf" class="file-picker" type="file" multiple>
           <button id="newf" class="btn">ملف جديد</button>
         </div>
         <div id="sel" class="muted">ما تم تحديد أي ملف</div>
@@ -101,7 +101,7 @@
       <div class="panel">
         <h3>📥 استيراد مود</h3>
         <p class="muted">يدعم ZIP، وRAR يحتاج ملفات libarchive الموجودة داخل مجلد vendor.</p>
-        <label class="btn wide" for="imp2">اختيار ZIP أو RAR</label>
+        <button class="btn wide" type="button" onclick="document.getElementById('imp2').click()">اختيار ZIP أو RAR</button>
       </div>
     </section>
 
@@ -118,8 +118,8 @@
           <button id="atx" class="btn acc">＋ إضافة نص</button>
         </div>
         <div class="bar">
-          <label class="btn" for="aim">＋ إضافة صورة</label>
-          <input id="aim" type="file" accept="image/*" hidden>
+          <button class="btn" type="button" onclick="document.getElementById('aim').click()">＋ إضافة صورة</button>
+          <input id="aim" class="file-picker" type="file" accept="image/*">
           <button id="dl" class="btn danger">حذف العنصر المحدد</button>
         </div>
         <label for="ts">الحجم</label>
