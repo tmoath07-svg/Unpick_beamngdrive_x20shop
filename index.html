@@ -1,70 +1,217 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>BEAMNG CARS STUDIO</title>
-<link rel="stylesheet" href="css/style.css">
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
-</head><body>
-<header><b class="logo">BEAMNG CARS STUDIO</b><span class="muted">استوديو سيارات بيم إن جي</span></header>
-<main>
-<section id="p-home" class="home"><div class="hero"><h2>هلا والله 👋</h2>
-<p>حط المود حقك، عدّل ملفاته وخاماته، وبعدين صدّره جاهز. كل شي يصير داخل متصفحك وما نرفع أي ملف لأي مكان.</p>
-<label class="btn big acc wide">📦 حط المود (ZIP / RAR)<input type="file" id="imp" accept=".zip,.rar" multiple hidden></label></div>
-<div class="cards">
-<button class="card" data-go="explorer"><i>📁</i><b>ملفاتك</b><small>شوفها وعدّلها وانقلها</small></button>
-<button class="card" data-go="code"><i>📝</i><b>الكود</b><small>عدّل JBeam و JSON و Lua</small></button>
-<button class="card" data-go="texture"><i>🎨</i><b>الخامات</b><small>حط كلام أو صورة على الخامة</small></button>
-<button class="card" data-go="vehicle"><i>🚗</i><b>السيارة 3D</b><small>شوف موديل السيارة</small></button>
-<button class="card" data-go="package"><i>🎁</i><b>حزمتك</b><small>اجمع وصدّر ZIP</small></button>
-</div>
-<details class="panel"><summary>وش اللي يشتغل وش اللي ما يشتغل؟</summary>
-<p><b class="ok">يشتغل:</b> فتح ZIP، شجرة الملفات (ضيف/امسح/غيّر الاسم/انقل)، محرر الكود بالتلوين وأرقام الأسطر والبحث والتبديل وفحص أخطاء JSON/JBeam، الخطوط، معاينة DAE، محرر خامات PNG/JPG، تصدير ZIP.</p>
-<p><b class="warn">يبي إعداد:</b> فك RAR يبي تحط ملفات libarchive.js في مجلد vendor (الشرح في README).</p>
-<p><b class="no">ما يشتغل:</b> إنشاء RAR (مستحيل بالمتصفح، التصدير ZIP)، DDS (يبقى زي ما هو بدون تعديل)، معاينة UV، الخامات على الموديل، وحفظ شغلك بعد ما تعيد تحميل الصفحة.</p></details></section>
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101014">
+  <meta name="description" content="أداة إدارة وتعديل ملفات مودات BeamNG.drive">
+  <title>معاذ | BeamNG Studio</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <header>
+    <div class="logo">✦ MOATH STUDIO</div>
+    <div class="muted">أدوات مودات BeamNG.drive</div>
+  </header>
 
-<section id="p-explorer" hidden><h2>📁 ملفاتك</h2>
-<div class="bar">
-<label class="btn acc">حط مود<input type="file" id="imp2" accept=".zip,.rar" multiple hidden></label>
-<label class="btn">➕ ضيف ملفات<input type="file" id="addf" multiple hidden></label>
-<button class="btn" id="newf">📄 ملف جديد</button></div>
-<div class="bar"><button class="btn" id="open">افتح</button><button class="btn" id="ren">✏️ غيّر الاسم</button><button class="btn" id="mov">↔️ انقل</button><button class="btn danger" id="del">🗑 امسح</button></div>
-<div id="sel" class="muted">اضغط على ملف أو مجلد عشان تحدده</div><div id="tree" class="panel"></div></section>
+  <main>
+    <!-- الرئيسية -->
+    <section id="p-home">
+      <div class="hero">
+        <div class="muted">BEAMNG DRIVE • MOD TOOLS</div>
+        <h2>ستوديو المودات</h2>
+        <p>افتح ملفات المود، عدّلها، واستخرج حزمتك من مكان واحد.</p>
+        <label class="btn acc big wide" for="imp">📦 استيراد مود ZIP / RAR</label>
+        <input id="imp" type="file" accept=".zip,.rar" multiple hidden>
+      </div>
 
-<section id="p-code" hidden><h2>📝 الكود</h2>
-<div class="bar"><b id="cf">—</b><button class="btn acc" id="save">💾 احفظ</button></div>
-<div id="lint" class="muted"></div>
-<div class="ed" id="edw"><div class="gw"><div id="gin"><pre id="gut"></pre><i id="gerr"></i></div></div><div class="tw"><pre id="hl"></pre><textarea id="ta" spellcheck="false" autocapitalize="off" autocorrect="off" wrap="off"></textarea></div></div>
-<details class="panel"><summary>🔍 دوّر وبدّل</summary><div class="bar"><input id="fi" placeholder="دوّر عن"><input id="ri" placeholder="بدّلها بـ">
-<button class="btn" id="fn">اللي بعده</button><button class="btn" id="rp">بدّل</button><button class="btn" id="ra">بدّل الكل</button></div></details>
-<details class="panel"><summary>🔤 الخط والشكل</summary><div class="bar"><select id="efont" class="fp"></select><div class="fprev"></div><input type="number" id="efs" value="14" min="8" max="40"><input type="color" id="ecol" value="#ffffff">
-<select id="eal"><option value="left">يسار</option><option value="right">يمين</option><option value="center">وسط</option></select></div></details></section>
+      <div class="cards">
+        <button class="card" data-go="explorer"><i>📁</i><b>ملفاتك</b><small>تصفح الملفات والمجلدات</small></button>
+        <button class="card" data-go="code"><i>📝</i><b>محرر الكود</b><small>تعديل JBEAM و JSON وغيرها</small></button>
+        <button class="card" data-go="texture"><i>🎨</i><b>الخامات</b><small>إضافة نصوص وصور للخامة</small></button>
+        <button class="card" data-go="vehicle"><i>🚘</i><b>معاينة السيارة</b><small>عرض ملفات DAE ومعلومات المود</small></button>
+        <button class="card" data-go="package"><i>🎁</i><b>تصدير الحزمة</b><small>جمع الملفات في ZIP</small></button>
+        <button class="card" data-go="settings"><i>⚙️</i><b>الإعدادات</b><small>تخصيص المحرر والخط</small></button>
+      </div>
 
-<section id="p-texture" hidden><h2>🎨 الخامات</h2>
-<div class="muted">افتح صورة PNG أو JPG من «ملفاتك» بزر «افتح». <span id="tf"></span></div>
-<div class="bar"><input id="tt" placeholder="اكتب الكلام"><button class="btn acc" id="atx">ضيف كلام</button>
-<label class="btn">🖼 ضيف صورة<input type="file" id="aim" accept="image/*" hidden></label><button class="btn danger" id="dl">امسح العنصر</button></div>
-<div class="bar"><select id="tfont" class="fp"></select><div class="fprev"></div><input type="color" id="tc" value="#ffffff">
-<label>الحجم <input type="range" id="ts" min="8" max="2000" value="100"></label><label>الدوران <input type="range" id="tr" min="-180" max="180" value="0"></label></div>
-<p class="muted">جرّ العنصر على الصورة عشان تحركه.</p>
-<div class="cvw"><canvas id="cv" width="512" height="512"></canvas></div>
-<div class="bar"><button class="btn acc" id="tsave">احفظ بالمشروع</button><button class="btn" id="tdl">نزّل الصورة</button></div></section>
+      <div class="panel">
+        <h3>🚀 ابدأ بسرعة</h3>
+        <p class="muted">استورد ملف المود، افتح المجلد من صفحة «ملفاتك»، وبعد التعديل احفظ ملفاتك ثم صدّر الحزمة.</p>
+        <div class="bar">
+          <label class="btn wide" for="imp2">＋ إضافة مود آخر</label>
+          <input id="imp2" type="file" accept=".zip,.rar" multiple hidden>
+        </div>
+      </div>
+    </section>
 
-<section id="p-vehicle" hidden><h2>🚗 السيارة</h2>
-<div id="vinfo" class="panel"></div>
-<div class="bar"><select id="dae"></select><button class="btn acc" id="ld">حمّل الموديل</button><button class="btn" id="ph">شكل توضيحي</button></div>
-<div class="bar"><button class="btn vb" data-v="front">قدام</button><button class="btn vb" data-v="rear">ورا</button><button class="btn vb" data-v="side">جنب</button><button class="btn vb" data-v="top">فوق</button><button class="btn vb" data-v="iso">3/4</button></div>
-<div class="cvw v3"><canvas id="v3"></canvas><div id="vph" hidden>هذا شكل توضيحي بس — مو السيارة الحقيقية</div></div>
-<p class="muted">يطلع الشكل بس بلون رمادي (بدون خامات). حرّك بإصبعك تلف الموديل، وبإصبعين تكبّر وتصغّر.</p></section>
+    <!-- السيارة -->
+    <section id="p-vehicle" hidden>
+      <h2>🚗 السيارة والمعاينة</h2>
+      <div class="panel">
+        <div id="vinfo" class="muted">استورد مود سيارة عشان تظهر معلوماته هنا.</div>
+      </div>
+      <div class="panel">
+        <label for="dae">ملف الموديل DAE</label>
+        <div class="bar">
+          <select id="dae" class="wide"><option value="">ما فيه ملفات DAE</option></select>
+          <button id="ld" class="btn acc">تحميل الموديل</button>
+        </div>
+        <div class="v3" style="position:relative">
+          <canvas id="v3"></canvas>
+          <div id="vph" hidden>معاينة توضيحية، اختر ملف DAE لعرض الموديل الحقيقي</div>
+        </div>
+        <div class="bar">
+          <button class="btn vb" data-v="front">أمام</button>
+          <button class="btn vb" data-v="rear">خلف</button>
+          <button class="btn vb" data-v="side">جانب</button>
+          <button class="btn vb" data-v="top">أعلى</button>
+          <button class="btn vb" data-v="iso">حر</button>
+          <button id="ph" class="btn">معاينة مؤقتة</button>
+        </div>
+      </div>
+    </section>
 
-<section id="p-package" hidden><h2>🎁 حزمتك</h2>
-<p class="muted">اختر اللي تبي تدمجه في ملف ZIP واحد.</p>
-<div id="rl" class="panel"></div>
-<div class="bar"><input id="pn" value="my-beamng-mod"><label><input type="checkbox" id="flat" checked> دمج كل شي في جذر الحزمة (لازم <code>vehicles/…</code> يكون بالجذر)</label></div>
-<button class="btn acc big wide" id="pk">⬇️ صدّر ZIP</button>
-<p class="muted">التصدير ZIP بس؛ إنشاء RAR ما ينفع داخل المتصفح.</p></section>
+    <!-- الملفات -->
+    <section id="p-explorer" hidden>
+      <h2>📁 مستكشف الملفات</h2>
+      <div class="panel">
+        <div class="bar">
+          <label class="btn acc" for="addf">＋ إضافة ملفات</label>
+          <input id="addf" type="file" multiple hidden>
+          <button id="newf" class="btn">ملف جديد</button>
+        </div>
+        <div id="sel" class="muted">ما تم تحديد أي ملف</div>
+        <div class="bar">
+          <button id="open" class="btn acc">فتح</button>
+          <button id="ren" class="btn">إعادة تسمية</button>
+          <button id="mov" class="btn">نقل</button>
+          <button id="del" class="btn danger">حذف</button>
+        </div>
+        <div id="tree" aria-label="شجرة الملفات"></div>
+      </div>
+      <div class="panel">
+        <h3>📥 استيراد مود</h3>
+        <p class="muted">يدعم ZIP، وRAR يحتاج ملفات libarchive الموجودة داخل مجلد vendor.</p>
+        <label class="btn wide" for="imp2">اختيار ZIP أو RAR</label>
+      </div>
+    </section>
 
-<section id="p-settings" hidden><h2>⚙️ الإعدادات</h2>
-<div class="panel"><p>الخطوط يحددها صاحب الموقع في <code>fonts/fonts.json</code> وما أحد غيره يقدر يعدلها.</p><p>الواجهة عربية بلهجة نجدية، يمين لشمال.</p><p class="muted">الملفات تبقى بذاكرة المتصفح بس وتروح إذا سكرت الصفحة، فصدّر شغلك قبل لا تطلع.</p></div></section>
+    <!-- الخامات -->
+    <section id="p-texture" hidden>
+      <h2>🎨 محرر الخامات</h2>
+      <div class="panel">
+        <div id="tf" class="muted">افتح صورة PNG أو JPG من صفحة ملفاتك أول.</div>
+        <div class="cvw"><canvas id="cv"></canvas></div>
+        <div class="bar">
+          <input id="tt" type="text" placeholder="اكتب النص اللي تبيه">
+          <input id="tc" type="color" value="#ffffff" aria-label="لون النص">
+          <select id="tfont" class="fp" aria-label="نوع الخط"></select>
+          <button id="atx" class="btn acc">＋ إضافة نص</button>
+        </div>
+        <div class="bar">
+          <label class="btn" for="aim">＋ إضافة صورة</label>
+          <input id="aim" type="file" accept="image/*" hidden>
+          <button id="dl" class="btn danger">حذف العنصر المحدد</button>
+        </div>
+        <label for="ts">الحجم</label>
+        <input id="ts" type="range" min="8" max="500" value="80">
+        <label for="tr">الدوران</label>
+        <input id="tr" type="range" min="-180" max="180" value="0">
+        <div class="bar">
+          <button id="tsave" class="btn acc wide">حفظ داخل المود</button>
+          <button id="tdl" class="btn wide">تنزيل الصورة</button>
+        </div>
+      </div>
+    </section>
 
-<footer><progress id="bar" max="1" value="0"></progress> <span id="bt"></span><div id="log"></div></footer>
-</main><nav id="nav"></nav><script src="js/app.js"></script></body></html>
+    <!-- الكود -->
+    <section id="p-code" hidden>
+      <h2>📝 محرر الأكواد</h2>
+      <div class="panel">
+        <div id="cf" class="muted">ما فيه ملف مفتوح</div>
+        <div id="lint" class="muted"></div>
+        <div class="bar">
+          <button id="save" class="btn acc">💾 حفظ التعديلات</button>
+          <input id="fi" type="text" placeholder="بحث عن كلمة">
+          <button id="fn" class="btn">بحث</button>
+        </div>
+        <div class="bar">
+          <input id="ri" type="text" placeholder="استبدال بـ">
+          <button id="rp" class="btn">استبدال المحدد</button>
+          <button id="ra" class="btn">استبدال الكل</button>
+        </div>
+        <div class="bar">
+          <select id="efont" aria-label="خط المحرر">
+            <option>Menlo</option><option>Monaco</option><option>Consolas</option><option>Courier New</option>
+          </select>
+          <select id="efs" aria-label="حجم الخط">
+            <option value="12">12</option><option value="14" selected>14</option><option value="16">16</option><option value="18">18</option><option value="20">20</option>
+          </select>
+          <input id="ecol" type="color" value="#f4f5f7" aria-label="لون الخط">
+          <select id="eal" aria-label="محاذاة النص">
+            <option value="left">يسار</option><option value="right">يمين</option><option value="center">وسط</option>
+          </select>
+        </div>
+        <div id="edw" class="ed">
+          <div class="gw"><div id="gin"><pre id="gut">1</pre><div id="gerr"></div></div></div>
+          <div class="tw">
+            <pre id="hl" aria-hidden="true"></pre>
+            <textarea id="ta" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="محرر النص"></textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- الحزمة -->
+    <section id="p-package" hidden>
+      <h2>🎁 تصدير الحزمة</h2>
+      <div class="panel">
+        <p class="muted">حدد المجلدات اللي تبي تدخلها في ملف ZIP.</p>
+        <div id="rl"></div>
+        <label class="bar"><input id="flat" type="checkbox"> دمج محتويات المجلدات بدون مجلد رئيسي</label>
+        <label for="pn">اسم الحزمة</label>
+        <input id="pn" class="wide" type="text" value="BeamNG-Mod">
+        <button id="pk" class="btn acc big wide">📦 إنشاء ZIP وتنزيله</button>
+      </div>
+    </section>
+
+    <!-- الإعدادات -->
+    <section id="p-settings" hidden>
+      <h2>⚙️ الإعدادات</h2>
+      <div class="panel">
+        <h3>اللغة</h3>
+        <div class="bar">
+          <button class="btn acc" data-l="ar">العربية</button>
+          <button class="btn" data-l="en">English</button>
+        </div>
+        <h3>الخطوط</h3>
+        <p class="muted">تقدر تضيف خطوطك في fonts/fonts.json مع ملفات الخط داخل مجلد fonts.</p>
+        <select class="fp wide" aria-label="معاينة الخط"></select>
+        <div class="fprev">BeamNG Cars Studio 0123 — ستوديو سيارات بيمإن جي</div>
+      </div>
+      <div class="panel">
+        <h3>معلومات</h3>
+        <p class="muted">MOATH STUDIO · أداة متصفح لإدارة ملفات مودات BeamNG.drive.</p>
+      </div>
+    </section>
+
+    <footer>
+      <div class="bar"><progress id="bar" max="1" value="0"></progress><span id="bt" class="muted"></span></div>
+      <h3>سجل العمليات</h3>
+      <div id="log" class="panel" aria-live="polite"><div>جاهز لاستيراد المودات.</div></div>
+    </footer>
+  </main>
+
+  <nav id="nav" aria-label="التنقل الرئيسي"></nav>
+  <script src="app.js"></script>
+</body>
+</html>
